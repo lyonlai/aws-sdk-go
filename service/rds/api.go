@@ -4174,6 +4174,12 @@ func (c *RDS) DescribeDBClusterParametersRequest(input *DescribeDBClusterParamet
 		Name:       opDescribeDBClusterParameters,
 		HTTPMethod: "POST",
 		HTTPPath:   "/",
+		Paginator: &request.Paginator{
+			InputTokens:     []string{"Marker"},
+			OutputTokens:    []string{"Marker"},
+			LimitToken:      "MaxRecords",
+			TruncationToken: "",
+		},
 	}
 
 	if input == nil {
@@ -4226,6 +4232,56 @@ func (c *RDS) DescribeDBClusterParametersWithContext(ctx aws.Context, input *Des
 	req.SetContext(ctx)
 	req.ApplyOptions(opts...)
 	return out, req.Send()
+}
+
+// DescribeDBClusterParametersPages iterates over the pages of a DescribeDBClusterParameters operation,
+// calling the "fn" function with the response data for each page. To stop
+// iterating, return false from the fn function.
+//
+// See DescribeDBClusterParameters method for more information on how to use this operation.
+//
+// Note: This operation can generate multiple requests to a service.
+//
+//    // Example iterating over at most 3 pages of a DescribeDBClusters operation.
+//    pageNum := 0
+//    err := client.DescribeDBClusterParameters(params,
+//        func(page *rds.DescribeDBClusterParametersOutput, lastPage bool) bool {
+//            pageNum++
+//            fmt.Println(page)
+//            return pageNum <= 3
+//        })
+//
+func (c *RDS) DescribeDBClusterParametersPages(input *DescribeDBClusterParametersInput, fn func(*DescribeDBClusterParametersOutput, bool) bool) error {
+	return c.DescribeDBClusterParametersPagesWithContext(aws.BackgroundContext(), input, fn)
+}
+
+// DescribeDBClusterParametersPagesWithContext same as DescribeDBClusterParametersPages except
+// it takes a Context and allows setting request options on the pages.
+//
+// The context must be non-nil and will be used for request cancellation. If
+// the context is nil a panic will occur. In the future the SDK may create
+// sub-contexts for http.Requests. See https://golang.org/pkg/context/
+// for more information on using Contexts.
+func (c *RDS) DescribeDBClusterParametersPagesWithContext(ctx aws.Context, input *DescribeDBClusterParametersInput, fn func(*DescribeDBClusterParametersOutput, bool) bool, opts ...request.Option) error {
+	p := request.Pagination{
+		NewRequest: func() (*request.Request, error) {
+			var inCpy *DescribeDBClusterParametersInput
+			if input != nil {
+				tmp := *input
+				inCpy = &tmp
+			}
+			req, _ := c.DescribeDBClusterParametersRequest(inCpy)
+			req.SetContext(ctx)
+			req.ApplyOptions(opts...)
+			return req, nil
+		},
+	}
+
+	cont := true
+	for p.Next() && cont {
+		cont = fn(p.Page().(*DescribeDBClusterParametersOutput), !p.HasNextPage())
+	}
+	return p.Err()
 }
 
 const opDescribeDBClusterSnapshotAttributes = "DescribeDBClusterSnapshotAttributes"
